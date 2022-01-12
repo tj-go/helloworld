@@ -31,3 +31,5 @@ dist/
 
 # Binary output directory
 bin/
+
+SPECS.txt
