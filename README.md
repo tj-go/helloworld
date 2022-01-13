@@ -26,3 +26,7 @@ make clean
 
 For more information on configuring private local domain see:
 - https://mjpitz.com/blog/2020/10/21/local-ingress-domains-kind/
+
+## Issue(s) and possible resolution
+- `Nginx reporting "Service Unavailable"` 
+  - Wait for a second or two for the pods to start handling requests.
