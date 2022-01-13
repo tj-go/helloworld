@@ -1,5 +1,5 @@
 # helloworld app
-A sample Golang "Hello world" application.
+A sample Golang "Hello world" application deployed locally using [kind](https://kind.sigs.k8s.io/)
 
 ## Required tools
 ### Packaged using:
