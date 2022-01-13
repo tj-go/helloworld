@@ -1,0 +1,2 @@
+- Develop a hello-world application and deploy it in k8s using local Docker and kind using helm for deployment.
+- Include concepts like readiness/liveness probes, service and even if possible ingress into your setup.

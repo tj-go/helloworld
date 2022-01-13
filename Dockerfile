@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine3.15 AS build
+FROM golang:1.17-buster AS build
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY *.go ./
 
-RUN go build -o ./bin/helloworld ./
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./bin/helloworld ./
 
 FROM gcr.io/distroless/base-debian10 AS main
 
