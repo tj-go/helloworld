@@ -14,7 +14,7 @@ Assumes all required external dependencies listed above are installed.
 
 Run:
 ```shell
-make start
+make helm-install
 ```
 
 Open a new browser window and visit: [http://localhost/](http://localhost/)

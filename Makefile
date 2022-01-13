@@ -48,22 +48,34 @@ docker-build:  ## Build docker image
 ##############################
 .PHONY: helm-lint
 helm-lint:  ## Lint go modules
+	@echo "Linting \"deploy/helloworld-chart...\""
 	@helm lint deploy/helloworld-chart
 
 .PHONY: helm-package
 helm-package: helm-clean  ## Package helm chart
+	@echo "Packaging \"deploy/helloworld-chart...\""
 	@helm dep update deploy/helloworld-chart && helm package deploy/helloworld-chart -d deploy/build/
 
 .PHONY: helm-clean
 helm-clean:  ## Clean helm package artifacts
-	@echo "Cleaning deploy/build..."
+	@echo "Cleaning \"deploy/build\"..."
 	@rm -rf deploy/build
+
+################################
+## Install Helm chart archive ##
+################################
+.PHONY: helm-install
+helm-install: kind-create-cluster helm-package  ## Create the cluster, package helm charts and install the build
+	@echo "Installing \"./deploy/build/helloworld-chart-0.0.1.tgz\"..."
+	@sleep 60
+	@helm install --create-namespace --namespace hello-kind hello-world ./deploy/build/helloworld-chart-0.0.1.tgz
 
 ##############################
 ###### Kind commands #########
 ##############################
 .PHONY: kind-create-cluster
 kind-create-cluster: kind-clean  ## Create k8's cluster using kind and a custom "./deploy/cluster.yml"
+	@echo "Creating k8's cluster using kind and a custom \"./deploy/cluster.yml...\""
 	@kind create cluster --name kind-helloworld --config=./deploy/cluster.yml
 	@kubectl cluster-info --context kind-kind-helloworld
 	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
@@ -72,16 +84,9 @@ kind-create-cluster: kind-clean  ## Create k8's cluster using kind and a custom 
 
 .PHONY: kind-clean
 kind-clean:  ## Delete the "kind-helloworld" cluster and "ingress-nginx" namespace
+	@echo "Deleting the \"kind-helloworld\" cluster and \"ingress-nginx\" namespace..."
 	@kind delete cluster --name kind-helloworld > /dev/null 2>&1 || true
 	@kubectl delete namespaces ingress-nginx > /dev/null 2>&1 || true
-
-##############################
-###### Install Helm chart ####
-##############################
-.PHONY: start
-start: kind-create-cluster helm-package  ## Create the cluster, package helm charts and install the build
-	@sleep 60
-	@helm install --create-namespace --namespace hello-kind hello-world ./deploy/build/helloworld-chart-0.0.1.tgz
 
 ###############################
 # Cleanup resources/artifacts #
