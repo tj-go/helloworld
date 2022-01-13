@@ -51,8 +51,12 @@ helm-lint:  ## Lint go modules
 	@cd deploy && helm lint helloworld-chart
 
 .PHONY: helm-package
-helm-package:
-	@cd deploy && helm dep update helloworld-chart && helm package helloworld-chart
+helm-package: helm-clean
+	@cd deploy && helm dep update helloworld-chart && helm package helloworld-chart -d build/
+
+.PHONY: helm-clean
+helm-clean:
+	rm -rf deploy/build
 
 ##############################
 ###### Kind commands #########
@@ -71,15 +75,15 @@ kind-clean:  ## Delete the kind-helloworld cluster and ingress-nginx namespace
 	@kubectl delete namespaces ingress-nginx > /dev/null 2>&1 || true
 
 ##############################
-###### Deployment commands ###
+###### Deploy/Run command ####
 ##############################
-.PHONY: deploy
-deploy: kind-create-cluster helm-package
+.PHONY: start
+start: kind-create-cluster helm-package
 	@cd deploy && \
-		helm install --namespace hello-kind hello-world ./deploy/helloworld-chart-0.0.1.tgz
+		helm install --namespace hello-kind hello-world ./build/helloworld-chart-0.0.1.tgz
 
-##############################
-###### Cleanup resources #####
-##############################
+###############################
+# Cleanup resources/artifacts #
+###############################
 .PHONY: clean
-clean: go-clean kind-clean
+clean: go-clean kind-clean helm-clean
