@@ -32,14 +32,14 @@ go-run: go-build  ## Execute binary
 
 .PHONY: go-clean
 go-clean:  ## Clean binary file
-	@echo "Cleaning binary..."
+	@echo "Cleaning ./bin..."
 	@rm -rf ./bin
 
 ##############################
 ###### Docker commands #######
 ##############################
 .PHONY: docker-build
-docker-build:
+docker-build:  ## Build docker image
 	@echo "Building docker image..."
 	@docker build -t hello-world:v0.0.1 .
 
@@ -48,21 +48,22 @@ docker-build:
 ##############################
 .PHONY: helm-lint
 helm-lint:  ## Lint go modules
-	@cd deploy && helm lint helloworld-chart
+	@helm lint deploy/helloworld-chart
 
 .PHONY: helm-package
-helm-package: helm-clean
-	@cd deploy && helm dep update helloworld-chart && helm package helloworld-chart -d build/
+helm-package: helm-clean  ## Package helm chart
+	@helm dep update deploy/helloworld-chart && helm package deploy/helloworld-chart -d deploy/build/
 
 .PHONY: helm-clean
-helm-clean:
-	rm -rf deploy/build
+helm-clean:  ## Clean helm package artifacts
+	@echo "Cleaning deploy/build..."
+	@rm -rf deploy/build
 
 ##############################
 ###### Kind commands #########
 ##############################
 .PHONY: kind-create-cluster
-kind-create-cluster: kind-clean
+kind-create-cluster: kind-clean  ## Create k8's cluster using kind and a custom "./deploy/cluster.yml"
 	@kind create cluster --name kind-helloworld --config=./deploy/cluster.yml
 	@kubectl cluster-info --context kind-kind-helloworld
 	@kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
@@ -70,20 +71,20 @@ kind-create-cluster: kind-clean
 	@kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=120s
 
 .PHONY: kind-clean
-kind-clean:  ## Delete the kind-helloworld cluster and ingress-nginx namespace
+kind-clean:  ## Delete the "kind-helloworld" cluster and "ingress-nginx" namespace
 	@kind delete cluster --name kind-helloworld > /dev/null 2>&1 || true
 	@kubectl delete namespaces ingress-nginx > /dev/null 2>&1 || true
 
 ##############################
-###### Deploy/Run command ####
+###### Install Helm chart ####
 ##############################
 .PHONY: start
-start: kind-create-cluster helm-package
-	@cd deploy && \
-		helm install --namespace hello-kind hello-world ./build/helloworld-chart-0.0.1.tgz
+start: kind-create-cluster helm-package  ## Create the cluster, package helm charts and install the build
+	@sleep 60
+	@helm install --create-namespace --namespace hello-kind hello-world ./deploy/build/helloworld-chart-0.0.1.tgz
 
 ###############################
 # Cleanup resources/artifacts #
 ###############################
-.PHONY: clean
+.PHONY: clean  ## Clean all artifacts
 clean: go-clean kind-clean helm-clean
