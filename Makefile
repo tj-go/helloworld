@@ -74,6 +74,9 @@ helm-install: kind-create-cluster helm-package  ## Create the cluster, package h
 helm-upgrade: helm-package
 	@helm upgrade --namespace hello-kind hello-world ./deploy/build/helloworld-chart-0.0.1.tgz
 
+helm-test:
+	@helm test hello-world --namespace hello-kind
+
 ##############################
 ###### Kind commands #########
 ##############################
